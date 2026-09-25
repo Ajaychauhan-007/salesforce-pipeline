@@ -1,0 +1,65 @@
+name: Salesforce CI/CD
+
+on:
+  # PR banega main pe to sirf validate hoga (dry run)
+  pull_request:
+    branches: [develop]
+  # main pe merge/push hoga to actual deploy hoga
+  push:
+    branches: [develop]
+  # GitHub pe Actions tab se manually bhi chala sakte ho
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate on Dev Org
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Salesforce CLI
+        run: npm install -g @salesforce/cli
+
+      - name: Login to Dev Org
+        run: |
+          echo "${{ secrets.SALESFORCE_AUTH_URL_DEV}}" > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias dev --set-default
+          rm auth.txt
+
+      - name: Validate deployment (dry run)
+        run: sf project deploy validate --source-dir force-app --test-level RunLocalTests --target-org dev
+
+  deploy:
+    name: Deploy to Dev Org
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Salesforce CLI
+        run: npm install -g @salesforce/cli
+
+      - name: Login to Dev Org
+        run: |
+          echo "${{ secrets.SALESFORCE_AUTH_URL_DEV }}" > auth.txt
+          sf org login sfdx-url --sfdx-url-file auth.txt --alias dev --set-default
+          rm auth.txt
+
+      - name: Deploy to org
+        run: sf project deploy start --source-dir force-app --test-level RunLocalTests --target-org dev
+
+      - name: Show deployed org info
+        run: sf org display --target-org dev
