@@ -29,7 +29,7 @@ jobs:
 
       - name: Login to Dev Org
         run: |
-          echo "${{ secrets.SFDX_AUTH_URL_DEV }}" > auth.txt
+          echo "${{ secrets.SALESFORCE_AUTH_URL_DEV}}" > auth.txt
           sf org login sfdx-url --sfdx-url-file auth.txt --alias dev --set-default
           rm auth.txt
 
@@ -54,7 +54,7 @@ jobs:
 
       - name: Login to Dev Org
         run: |
-          echo "${{ secrets.SFDX_AUTH_URL_DEV }}" > auth.txt
+          echo "${{ secrets.SALESFORCE_AUTH_URL_DEV }}" > auth.txt
           sf org login sfdx-url --sfdx-url-file auth.txt --alias dev --set-default
           rm auth.txt
 
